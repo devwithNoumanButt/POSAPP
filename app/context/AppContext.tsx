@@ -3,10 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface Product {
-<<<<<<< HEAD
-=======
   id?: number; // Added optional id for Supabase integration
->>>>>>> backend setup
   name: string;
   category: string;
   price: number;
@@ -18,19 +15,12 @@ interface Product {
 }
 
 interface Category {
-<<<<<<< HEAD
-=======
   id?: number; // Added optional id for Supabase integration
->>>>>>> backend setup
   name: string;
 }
 
 interface Sale {
-<<<<<<< HEAD
-  id: string;
-=======
   id: string | number; // Allow number for Supabase id
->>>>>>> backend setup
   items: Product[];
   total: number;
   date: string;
@@ -42,16 +32,11 @@ interface Sale {
 
 interface AppContextType {
   products: Product[];
-<<<<<<< HEAD
+  setProducts: (products: Product[]) => void;
   categories: Category[];
+  setCategories: (categories: Category[]) => void;
   sales: Sale[];
-=======
-  setProducts: (products: Product[]) => void; // Added
-  categories: Category[];
-  setCategories: (categories: Category[]) => void; // Added
-  sales: Sale[];
-  setSales: (sales: Sale[]) => void; // Added
->>>>>>> backend setup
+  setSales: (sales: Sale[]) => void;
   addProduct: (product: Product) => void;
   addCategory: (category: Category) => void;
   addSale: (sale: Sale) => void;
@@ -77,23 +62,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-<<<<<<< HEAD
-    <AppContext.Provider value={{ products, categories, sales, addProduct, addCategory, addSale }}>
-=======
     <AppContext.Provider
       value={{
         products,
-        setProducts, // Added
+        setProducts,
         categories,
-        setCategories, // Added
+        setCategories,
         sales,
-        setSales, // Added
+        setSales,
         addProduct,
         addCategory,
         addSale,
       }}
     >
->>>>>>> backend setup
       {children}
     </AppContext.Provider>
   );
@@ -105,8 +86,4 @@ export const useAppContext = () => {
     throw new Error('useAppContext must be used within an AppProvider');
   }
   return context;
-<<<<<<< HEAD
-}; 
-=======
 };
->>>>>>> backend setup
