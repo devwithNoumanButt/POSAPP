@@ -62,9 +62,9 @@ export default function OrderDetails() {
         });
 
         setSales(formattedSales);
-      } catch (err) {
+      } catch (error) {
         setError('Failed to fetch order details');
-        console.error(err);
+        console.error('Error fetching order details:', error);
       } finally {
         setLoading(false);
       }
@@ -79,7 +79,7 @@ export default function OrderDetails() {
         fetchOrderDetails(String(sale.id)).then(data => console.log('Order Details:', data));
       });
     }
-  }, [sales]);
+  }, [sales, setSales]);
 
   const handleDownloadExcel = async () => {
     try {
@@ -125,6 +125,9 @@ export default function OrderDetails() {
     }
   };
 
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -139,18 +142,8 @@ export default function OrderDetails() {
         </button>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
-          {error}
-        </div>
-      )}
-
       <div className="space-y-6">
-        {loading ? (
-          <div className="text-center py-8 text-gray-500">
-            Loading orders...
-          </div>
-        ) : sales.length === 0 ? (
+        {sales.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             No orders found
           </div>
