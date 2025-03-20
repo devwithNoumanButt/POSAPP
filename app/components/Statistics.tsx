@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { DollarSign, Package } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { supabase } from '../../lib/supabase';
 
 interface StatCardProps {
   title: string;
@@ -23,11 +24,24 @@ const StatCard = ({ title, value, icon: Icon, color }: StatCardProps) => (
   </div>
 );
 
+const fetchStatistics = async () => {
+  const { data, error } = await supabase
+    .from('statistics')
+    .select('*');
+
+  if (error) console.error(error);
+  return data;
+};
+
 export default function Statistics() {
   const { sales } = useAppContext();
 
   const totalSales = sales.reduce((acc, sale) => acc + sale.total, 0);
   const recentSales = sales.slice(-5);
+
+  useEffect(() => {
+    fetchStatistics().then(data => console.log('Statistics:', data));
+  }, []);
 
   return (
     <div className="space-y-8">

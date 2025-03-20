@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Trash2, Calculator, Printer, X, Search } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { supabase } from '../../lib/supabase';
 
 interface OrderItem {
   id: number;
@@ -14,6 +15,24 @@ interface OrderItem {
   subtotal: number;
   totalAfterDiscount: number;
 }
+
+const fetchProducts = async () => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*');
+
+  if (error) console.error(error);
+  return data;
+};
+
+const fetchOrders = async () => {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*');
+
+  if (error) console.error(error);
+  return data;
+};
 
 export default function POS() {
   const [selectedProduct, setSelectedProduct] = useState<OrderItem | null>(null);
@@ -45,6 +64,11 @@ export default function POS() {
   useEffect(() => {
     calculateTotal();
   }, [calculateTotal]);
+
+  useEffect(() => {
+    fetchProducts().then(data => console.log('Products:', data));
+    fetchOrders().then(data => console.log('Orders:', data));
+  }, []);
 
   const handleProductSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const product = products.find(p => p.code === e.target.value);

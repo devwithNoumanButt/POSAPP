@@ -1,8 +1,20 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Calendar, Package, User, CreditCard, Download } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { supabase } from '../../lib/supabase';
+
+const fetchOrderDetails = async (orderId) => {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('id', orderId);
+
+  if (error) console.error(error);
+  return data;
+};
+
 export default function OrderDetails() {
   const { sales } = useAppContext();
 
@@ -63,6 +75,14 @@ export default function OrderDetails() {
       alert('Error generating Excel file. Please try again.');
     }
   };
+
+  useEffect(() => {
+    if (sales.length > 0) {
+      sales.forEach(sale => {
+        fetchOrderDetails(sale.id).then(data => console.log('Order Details:', data));
+      });
+    }
+  }, [sales]);
 
   return (
     <div>

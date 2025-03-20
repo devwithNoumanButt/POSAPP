@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { supabase } from '../supabase'; // Assuming you have a supabase instance set up
 
 export default function AddCategory() {
   const [categoryName, setCategoryName] = useState('');
   const { categories, addCategory } = useAppContext();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (categoryName) {
-      addCategory({ name: categoryName });
+      const { error } = await supabase.from('categories').insert([{ name: categoryName }]);
+      if (error) console.error('Error adding category:', error);
+      else console.log('Category added successfully');
       setCategoryName('');
     }
   };

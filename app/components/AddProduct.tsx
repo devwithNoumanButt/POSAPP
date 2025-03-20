@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { supabase } from '../supabase'; // Import supabase instance
 
 export default function AddProduct() {
   const [formData, setFormData] = useState({
@@ -18,21 +19,22 @@ export default function AddProduct() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name && formData.category && formData.price) {
-      addProduct({
-        ...formData,
-        price: parseFloat(formData.price)
-      });
-      setFormData({
-        name: '',
-        category: '',
-        price: '',
-        code: '',
-        description: ''
-      });
-    }
+    const { name, category, price, code, description } = formData;
+    const { error } = await supabase.from('products').insert([
+      { name, category, price, code, description }
+    ]);
+    if (error) console.error('Error adding product:', error);
+    else console.log('Product added successfully');
+    // Reset form data
+    setFormData({
+      name: '',
+      category: '',
+      price: '',
+      code: '',
+      description: ''
+    });
   };
 
   return (
