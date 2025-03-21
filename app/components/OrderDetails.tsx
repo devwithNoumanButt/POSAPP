@@ -3,16 +3,6 @@ import { Calendar, Package, User, CreditCard, Download } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../../lib/supabase';
 
-const fetchOrderDetails = async (orderId: string) => {
-  const { data, error } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('id', orderId);
-
-  if (error) console.error(error);
-  return data;
-};
-
 export default function OrderDetails() {
   const { sales, setSales } = useAppContext();
   const [loading, setLoading] = useState(true);
@@ -24,40 +14,87 @@ export default function OrderDetails() {
         setLoading(true);
         setError(null);
 
+        // Get all orders with user information
         const { data: ordersData, error: ordersError } = await supabase
           .from('orders')
-          .select('*, users(name, email)')
+          .select(`
+            *,
+            users (
+              id,
+              name,
+              email,
+              phone_number
+            )
+          `)
           .order('created_at', { ascending: false });
 
         if (ordersError) throw ordersError;
+        if (!ordersData || ordersData.length === 0) {
+          setSales([]);
+          setLoading(false);
+          return;
+        }
 
+        // Get all order items with product information
         const { data: itemsData, error: itemsError } = await supabase
           .from('order_items')
-          .select('*, products(name, code, price, category, description)')
+          .select(`
+            *,
+            products (
+              id,
+              name,
+              code,
+              price,
+              description,
+              category_id
+            )
+          `)
           .in('order_id', ordersData.map(order => order.id));
 
         if (itemsError) throw itemsError;
+
+        // Get all categories for reference
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('categories')
+          .select('*');
+
+        if (categoriesError) throw categoriesError;
+
+        // Create a map of category IDs to category names for easier lookup
+        const categoryMap = {};
+        if (categoriesData) {
+          categoriesData.forEach(category => {
+            categoryMap[category.id] = category.name;
+          });
+        }
 
         const formattedSales = ordersData.map(order => {
           const orderItems = itemsData.filter(item => item.order_id === order.id);
           return {
             id: order.id,
             date: order.created_at,
-            customerName: order.customer_name || order.users?.name || 'Walk-in Customer',
-            phoneNumber: order.phone_number || order.users?.email,
+            customerName: order.customer_name || (order.users ? order.users.name : 'Walk-in Customer'),
+            phoneNumber: order.phone_number || (order.users ? order.users.phone_number || order.users.email : null),
             total: order.total,
             tenderedAmount: order.tendered_amount || 0,
             change: order.change || 0,
-            items: orderItems.map(item => ({
-              name: item.products.name,
-              code: item.products.code,
-              quantity: item.quantity,
-              price: item.price,
-              discount: item.discount || 0,
-              totalAfterDiscount: item.quantity * item.price * (1 - (item.discount || 0) / 100),
-              category: item.products.category,
-              description: item.products.description
-            }))
+            items: orderItems.map(item => {
+              const product = item.products;
+              const categoryName = product && product.category_id ? 
+                categoryMap[product.category_id] || 'Uncategorized' : 
+                'Uncategorized';
+              
+              return {
+                name: product ? product.name : 'Unknown Product',
+                code: product ? product.code : '',
+                quantity: item.quantity,
+                price: item.price,
+                discount: item.discount || 0,
+                totalAfterDiscount: item.quantity * item.price * (1 - (item.discount || 0) / 100),
+                category: categoryName,
+                description: product ? product.description : ''
+              };
+            })
           };
         });
 
@@ -72,14 +109,6 @@ export default function OrderDetails() {
 
     fetchOrders();
   }, [setSales]);
-
-  useEffect(() => {
-    if (sales.length > 0) {
-      sales.forEach(sale => {
-        fetchOrderDetails(String(sale.id)).then(data => console.log('Order Details:', data));
-      });
-    }
-  }, [sales, setSales]);
 
   const handleDownloadExcel = async () => {
     try {
