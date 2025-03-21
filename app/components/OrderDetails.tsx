@@ -61,7 +61,7 @@ export default function OrderDetails() {
         if (categoriesError) throw categoriesError;
 
         // Create a map of category IDs to category names for easier lookup
-        const categoryMap = {};
+        const categoryMap: { [key: string]: string } = {};
         if (categoriesData) {
           categoriesData.forEach(category => {
             categoryMap[category.id] = category.name;
